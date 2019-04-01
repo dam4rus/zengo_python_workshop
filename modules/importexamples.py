@@ -46,3 +46,6 @@
 #
 # if __name__ == '__main__':
 #     print(example.submodule.fib_to_100())
+
+
+# import example.cyclic_import_1

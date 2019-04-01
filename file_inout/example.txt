@@ -1,0 +1,4 @@
+This is an example file for our python workshop!
+
+This is the third line:
+apple=orange
