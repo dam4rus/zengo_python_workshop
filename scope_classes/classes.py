@@ -53,6 +53,7 @@ print(derived.i)
 print(f'derived isinstance of BaseClass={isinstance(derived, BaseClass)}')  # Példány egy BaseClass példány?
 print(f'DerivedClass issubclass of BaseClass={issubclass(DerivedClass, BaseClass)}')  # DerivedClass egy BaseClass leszármazott?
 
+
 # Többszörös öröklődés
 class BaseClassA:
     def something(self):
@@ -67,8 +68,10 @@ class BaseClassB:
 class MultipleDerived(BaseClassA, BaseClassB):
     pass
 
+
 multiple_derived = MultipleDerived()
 multiple_derived.something()
+
 
 # Name mangling
 class ClassWithPrivate:
@@ -77,6 +80,7 @@ class ClassWithPrivate:
 
     def __update(self):
         print('update')
+
 
 with_private = ClassWithPrivate()
 # AttributeError: 'ClassWithPrivate' object has no attribute '__update'
