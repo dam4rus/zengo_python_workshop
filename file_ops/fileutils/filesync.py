@@ -5,17 +5,36 @@ from fnmatch import fnmatch
 from pathlib import Path
 
 
-def copy_dir(srcdir, destdir, recursive=False):
+def copy_dir(srcdir, destdir, patterns=None, recursive=False):
+    """
+
+    :param str or Path srcdir: Forrás mappa
+    :param str or Path destdir: Cél mappa
+    :param list[str] or None patterns:
+        None esetén minden fájlt szinkronizál, egyébként csak olyan fájlokat amelyekre igazat ad bármelyik pattern
+    :param bool recursive: Almappákat is másolja-e
+    :return:
+    """
+    if patterns is None:
+        patterns = ['*']
+
     if recursive:
         for root, dirs, files in os.walk(srcdir):
             reldir = Path(root).relative_to(srcdir)
 
             destreldir = Path(destdir) / reldir
-            if not os.path.isdir(destreldir):
-                os.makedirs(destreldir)
-
             for file in files:
                 srcfile = Path(root) / file
+                for pattern in patterns:
+                    if fnmatch(Path(srcfile).name, pattern):
+                        break
+                else:
+                    print(f'Skipping file {srcfile}. Pattern match fail')
+                    continue
+
+                if not destreldir.is_dir():
+                    destreldir.mkdir(parents=True)
+
                 destfile = destreldir / file
                 print(f'Copying file {srcfile} to {destfile}')
                 shutil.copy2(srcfile, destfile)
@@ -28,6 +47,13 @@ def copy_dir(srcdir, destdir, recursive=False):
             if not srcfile.is_file():
                 continue
 
+            for pattern in patterns:
+                if fnmatch(Path(srcfile).name, pattern):
+                    break
+            else:
+                print(f'Skipping file {srcfile}. Pattern match fail')
+                continue
+
             srcfile = Path(srcdir) / file
             destfile = Path(destdir) / file
             print(f'Copying file {srcfile} to {destfile}')
@@ -37,11 +63,11 @@ def copy_dir(srcdir, destdir, recursive=False):
 def sync_dir(srcdir, destdir, patterns=None, recursive=False):
     """
 
-    :param str srcdir: Forrás mappa
-    :param str destdir: Cél mappa
+    :param str or Path srcdir: Forrás mappa
+    :param str or Path destdir: Cél mappa
     :param list[str] or None patterns:
         None esetén minden fájlt szinkronizál, egyébként csak olyan fájlokat amelyekre igazat ad bármelyik pattern
-
+    :param bool recursive: Almappákat is másolja-e
     :return:
     """
     if Path(srcdir).absolute() == Path(destdir).absolute():
@@ -73,15 +99,7 @@ def sync_dir(srcdir, destdir, patterns=None, recursive=False):
             Path(destdir).mkdir(parents=True)
 
         for file in os.listdir(srcdir):
-            srcfile = Path(srcdir) / file
-            for pattern in patterns:
-                if fnmatch(Path(srcfile).name, pattern):
-                    break
-            else:
-                print(f'Skipping file {srcfile}. Pattern match fail')
-                continue
-
-            sync_file(srcfile, Path(destdir) / file)
+            sync_file(Path(srcdir) / file, Path(destdir) / file, patterns)
 
     return True
 
@@ -99,6 +117,10 @@ def sync_file(srcfile, destfile):
     if Path(destfile).is_file() and filecmp.cmp(srcfile, destfile):
         print(f'Skipping file {srcfile}. File not changed')
         return False
+
+    destfileparentdir = destfile.parent
+    if not destfileparentdir.is_dir():
+        destfileparentdir.mkdir(parents=True)
 
     print(f'Copying file {srcfile} to {destfile}')
     shutil.copy2(srcfile, destfile)
