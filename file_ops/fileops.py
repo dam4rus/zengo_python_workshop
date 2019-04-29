@@ -15,9 +15,9 @@ if __name__ == '__main__':
     sync_dir('assets', 'test/sync')
     print('--- sync recursive ---')
     sync_dir('assets', 'test/sync_recursive', recursive=True)
-    print('--- copy only txt ---')
+    print('--- sync only txt ---')
     sync_dir('assets', 'test/sync_pattern', ['*.txt'])
-    print('--- copy only css recursive --- ')
+    print('--- sync only css recursive --- ')
     sync_dir('assets', 'test/sync_pattern_recursive', ['*.txt'], True)
 
     print('--- generating md5 for assets/loremipsum.txt')

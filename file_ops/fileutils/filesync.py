@@ -21,8 +21,8 @@ def copy_dir(srcdir, destdir, patterns=None, recursive=False):
     if recursive:
         for root, dirs, files in os.walk(srcdir):
             reldir = Path(root).relative_to(srcdir)
-
             destreldir = Path(destdir) / reldir
+
             for file in files:
                 srcfile = Path(root) / file
                 for pattern in patterns:
@@ -32,16 +32,13 @@ def copy_dir(srcdir, destdir, patterns=None, recursive=False):
                     print(f'Skipping file {srcfile}. Pattern match fail')
                     continue
 
-                if not destreldir.is_dir():
+                if not destreldir.exists():
                     destreldir.mkdir(parents=True)
 
                 destfile = destreldir / file
                 print(f'Copying file {srcfile} to {destfile}')
                 shutil.copy2(srcfile, destfile)
     else:
-        if not Path(destdir).exists():
-            Path(destdir).mkdir(parents=True)
-
         for file in os.listdir(srcdir):
             srcfile = Path(srcdir) / file
             if not srcfile.is_file():
@@ -53,6 +50,9 @@ def copy_dir(srcdir, destdir, patterns=None, recursive=False):
             else:
                 print(f'Skipping file {srcfile}. Pattern match fail')
                 continue
+
+            if not Path(destdir).exists():
+                Path(destdir).mkdir(parents=True)
 
             srcfile = Path(srcdir) / file
             destfile = Path(destdir) / file
@@ -81,8 +81,6 @@ def sync_dir(srcdir, destdir, patterns=None, recursive=False):
         for root, dirs, files in os.walk(srcdir):
             reldir = Path(root).relative_to(srcdir)
             destreldir = Path(destdir) / reldir
-            if not destreldir.exists():
-                destreldir.mkdir(parents=True)
 
             for file in files:
                 srcfile = Path(root) / file
@@ -95,11 +93,16 @@ def sync_dir(srcdir, destdir, patterns=None, recursive=False):
 
                 sync_file(srcfile, Path(destreldir) / file)
     else:
-        if not Path(destdir).exists():
-            Path(destdir).mkdir(parents=True)
-
         for file in os.listdir(srcdir):
-            sync_file(Path(srcdir) / file, Path(destdir) / file, patterns)
+            srcfile = Path(srcdir) / file
+            for pattern in patterns:
+                if fnmatch(Path(srcfile).name, pattern):
+                    break
+            else:
+                print(f'Skipping file {srcfile}. Pattern match fail')
+                continue
+
+            sync_file(Path(srcdir) / file, Path(destdir) / file)
 
     return True
 
@@ -118,8 +121,8 @@ def sync_file(srcfile, destfile):
         print(f'Skipping file {srcfile}. File not changed')
         return False
 
-    destfileparentdir = destfile.parent
-    if not destfileparentdir.is_dir():
+    destfileparentdir = Path(destfile).parent
+    if not destfileparentdir.exists():
         destfileparentdir.mkdir(parents=True)
 
     print(f'Copying file {srcfile} to {destfile}')
@@ -138,6 +141,9 @@ if __name__ == '__main__':
     copydirparser.add_argument(dest='destdir')
     copydirparser.add_argument('-r', '--recursive',
                                action='store_true')
+    copydirparser.add_argument('-p', '--patterns',
+                               nargs='+',
+                               default='*')
 
     syncfileparser = subparsers.add_parser('sync_file')
     syncfileparser.add_argument(dest='srcfile')
@@ -154,7 +160,7 @@ if __name__ == '__main__':
 
     args = argparser.parse_args()
     if args.command == 'copy_dir':
-        copy_dir(args.srcdir, args.destdir, args.recursive)
+        copy_dir(args.srcdir, args.destdir, args.patterns, args.recursive)
     elif args.command == 'sync_file':
         sync_file(args.srcfile, args.destfile)
     elif args.command == 'sync_dir':
