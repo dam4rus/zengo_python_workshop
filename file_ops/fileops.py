@@ -1,4 +1,5 @@
-from fileutils import copy_dir, sync_dir
+from fileutils import hash
+from fileutils.filesync import copy_dir, sync_dir
 
 if __name__ == '__main__':
     print('--- copy ---')
@@ -9,3 +10,7 @@ if __name__ == '__main__':
     sync_dir('assets', 'test/sync')
     print('--- sync recursive ---')
     sync_dir('assets', 'test/sync_recursive', recursive=True)
+
+    print('--- generating md5 for assets/loremipsum.txt')
+    print(hash.generate_md5_for_file('assets/loremipsum.txt'))
+    hash.generate_md5_file_for_file('assets/loremipsum.txt', 'test/loremipsum.md5')
