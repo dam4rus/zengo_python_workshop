@@ -25,7 +25,7 @@ def generate_md5_file_for_file(file_path, md5_file_path):
     :param str or Path md5_file_path: Generált md5 fájl elérési útja
     :return:
     """
-    with open(md5_file_path, 'w') as f:
+    with open(md5_file_path, 'w+') as f:
         f.write(generate_md5_for_file(file_path))
 
 
